@@ -21,3 +21,8 @@ spring:
 # 📷 내가 원하는 로컬 저장 경로
 file:
   upload-dir: C:/workspace/Chat/IMAGE/
+
+# 🔄 application.yml 에 카카오 인증 정보 추가
+kakao:
+  client-id: "429780ef9d280c4afe7412483ee639ff"
+  redirect-uri: "http://localhost:8080/api/auth/kakao"

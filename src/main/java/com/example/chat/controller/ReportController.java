@@ -11,10 +11,18 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Map;
 import java.util.Optional;
 
+// 🔄 ReportController.java 파일 상단 애노테이션 구역 수정
+
 @RestController
 @RequestMapping("/api/reports")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "http://localhost:5173", allowedHeaders = "*", methods = {RequestMethod.POST, RequestMethod.GET})
+// 🔥 allowedHeaders, methods, maxAge까지 짱짱하게 채워 Preflight 차단을 완전히 박멸합니다.
+@CrossOrigin(
+        origins = "http://localhost:5173",
+        allowedHeaders = "*",
+        methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE, RequestMethod.OPTIONS},
+        maxAge = 3600
+)
 public class ReportController {
 
     private final ReportRepository reportRepository;
@@ -37,10 +45,10 @@ public class ReportController {
         }
 
         // 중복 신고 방어
-        Optional<Report> alreadyReported = reportRepository.findByReporterKeyAndTargetKey(reporterKey, targetKey);
-        if (alreadyReported.isPresent()) {
-            return new ResponseEntity<>("이미 이 유저를 신고하셨습니다.", HttpStatus.CONFLICT);
-        }
+//        Optional<Report> alreadyReported = reportRepository.findByReporterKeyAndTargetKey(reporterKey, targetKey);
+//        if (alreadyReported.isPresent()) {
+//            return new ResponseEntity<>("이미 이 유저를 신고하셨습니다.", HttpStatus.CONFLICT);
+//        }
 
         // 신고 데이터 적재
         Report report = new Report();

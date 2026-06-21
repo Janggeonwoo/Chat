@@ -17,6 +17,12 @@ public class User {
     @Column(nullable = false)
     private String nickname; // 유저가 입력한 닉네임
 
+    @Column(name = "user_id", unique = true, length = 50)
+    private String userId;
+
+    @Column(name = "user_pw", length = 255)
+    private String userPw;
+
     private LocalDateTime createdAt; // 가입 일시
 
     // JPA를 위한 기본 생성자
