@@ -2,49 +2,58 @@ package com.example.chat.service;
 
 import com.example.chat.repository.UserRepository;
 import com.example.chat.domain.User;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.UUID;
 
 @Service
 @Transactional(readOnly = true)
+@RequiredArgsConstructor
 public class UserService {
 
     private final UserRepository userRepository;
 
-    public UserService(UserRepository userRepository) {
-        this.userRepository = userRepository;
-    }
-
     /**
-     * 로그인 또는 회원가입 처리
-     * @param userKey 프론트에서 넘어온 고유 키 (없거나 처음이면 null 또는 빈 문자열)
-     * @param nickname 유저가 입력한 닉네임
+     * 🎲 카카오 및 수동 프로필 주입 로그인 및 가입
+     * 💡 [수정] 5번째 인자로 진짜 나이(Integer age)를 직접 수신하도록 스펙을 확장합니다.
      */
     @Transactional
-    public User loginOrRegister(String userKey, String nickname) {
-        // 1. 프론트에서 보낸 고유 키가 있다면 기존 유저인지 DB에서 조회
+    public User loginOrRegister(String userKey, String nickname, String gender, String ageRange, Integer age) {
+
+        // 1. 인자로 진짜 나이(age)가 안 넘어왔을 때만 (카카오 로그인 시점) 대역폭 앞글자 파싱 진행
+        Integer parsedAge = age;
+        if (parsedAge == null && ageRange != null && ageRange.contains("~")) {
+            try {
+                String ageStr = ageRange.split("~")[0]; // "20" 추출
+                parsedAge = Integer.parseInt(ageStr);   // 숫자로 변경
+            } catch (Exception e) {
+                System.out.println("⚠️ 나이 파싱 실패: " + e.getMessage());
+            }
+        }
+
+        final Integer finalAge = parsedAge;
+
         if (userKey != null && !userKey.trim().isEmpty()) {
             return userRepository.findByUserKey(userKey)
                     .map(existingUser -> {
-                        // 기존 유저인데 닉네임을 새로 바꿨다면 업데이트
-                        if (!existingUser.getNickname().equals(nickname)) {
-                            existingUser.changeNickname(nickname);
-                        }
+                        String targetGender = (gender != null) ? gender : existingUser.getGender();
+                        String targetAgeRange = (ageRange != null) ? ageRange : existingUser.getAgeRange();
+
+                        // 💡 인자로 넘어온 진짜 나이(27)가 있다면 대역폭 하한선(20)보다 최우선하여 마킹됩니다.
+                        Integer targetAge = (finalAge != null) ? finalAge : existingUser.getAge();
+
+                        existingUser.updateInfo(targetGender, targetAgeRange, targetAge);
                         return existingUser;
                     })
-                    // 혹시 프론트에선 키가 있는데 DB에 없다면 새 유저로 가입 처리
-                    .orElseGet(() -> createNewUser(nickname));
+                    .orElseGet(() -> createNewUser(userKey, nickname, gender, ageRange, finalAge));
         }
 
-        // 2. 고유 키가 없다면 아예 처음 온 유저이므로 새로 생성
-        return createNewUser(nickname);
+        return createNewUser("ANONYMOUS_" + UUID.randomUUID().toString().substring(0, 8), nickname, gender, ageRange, finalAge);
     }
 
-    // 신규 익명 유저 생성 및 UUID 발급
-    private User createNewUser(String nickname) {
-        String randomKey = UUID.randomUUID().toString(); // 무작위 고유 비밀키 생성
-        User newUser = new User(randomKey, nickname);
+    private User createNewUser(String userKey, String nickname, String gender, String ageRange, Integer age) {
+        User newUser = new User(userKey, nickname, gender, ageRange, age);
         return userRepository.save(newUser);
     }
 }

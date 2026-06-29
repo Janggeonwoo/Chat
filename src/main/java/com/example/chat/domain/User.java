@@ -1,37 +1,47 @@
 package com.example.chat.domain;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
+
 import java.time.LocalDateTime;
 
+
 @Entity
+@Getter
+@Setter
 @Table(name = "users")
 public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id; // DB 내부에서 관리하는 순번 (1, 2, 3...)
+    private Long id;
 
     @Column(unique = true, nullable = false)
-    private String userKey; // 기기 고유 UUID (프론트 localStorage에 저장될 비밀 키)
+    private String userKey;
 
     @Column(nullable = false)
-    private String nickname; // 유저가 입력한 닉네임
+    private String nickname;
 
-    @Column(name = "user_id", unique = true, length = 50)
-    private String userId;
+    @Column(length = 10)
+    private String gender; // "MALE" 또는 "FEMALE"
 
-    @Column(name = "user_pw", length = 255)
-    private String userPw;
+    @Column(length = 20)
+    private String ageRange; // "20~29" 형태
 
-    private LocalDateTime createdAt; // 가입 일시
+    private Integer age; // 💡 숫자로 된 나이 컬럼 추가!
 
-    // JPA를 위한 기본 생성자
+    private LocalDateTime createdAt;
+
     public User() {}
 
-    // 가입할 때 쓸 생성자
-    public User(String userKey, String nickname) {
+    // 생성자 보정
+    public User(String userKey, String nickname, String gender, String ageRange, Integer age) {
         this.userKey = userKey;
         this.nickname = nickname;
+        this.gender = gender;
+        this.ageRange = ageRange;
+        this.age = age;
         this.createdAt = LocalDateTime.now();
     }
 
@@ -39,10 +49,15 @@ public class User {
     public Long getId() { return id; }
     public String getUserKey() { return userKey; }
     public String getNickname() { return nickname; }
+    public String getGender() { return gender; }
+    public String getAgeRange() { return ageRange; }
+    public Integer getAge() { return age; }
     public LocalDateTime getCreatedAt() { return createdAt; }
 
-    // 닉네임 변경 기능 대비용 Setter
-    public void changeNickname(String nickname) {
-        this.nickname = nickname;
+    // 정보 업데이트 메서드 보정
+    public void updateInfo(String gender, String ageRange, Integer age) {
+        this.gender = gender;
+        this.ageRange = ageRange;
+        this.age = age;
     }
 }

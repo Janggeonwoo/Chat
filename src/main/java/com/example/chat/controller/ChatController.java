@@ -63,7 +63,7 @@ public class ChatController {
         String myNickname = headerAccessor.getFirstNativeHeader("nickname");
         String myUserKey = headerAccessor.getFirstNativeHeader("userKey");
 
-        if (myNickname == null) myNickname = "익명유저";
+        if (myNickname == null) myNickname = "유저";
         if (myUserKey == null) myUserKey = "unknown_key";
 
         sessionUserMap.put(sessionId, myNickname);
